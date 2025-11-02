@@ -2,20 +2,23 @@ CREATE TABLE users
 (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    date_of_birth DATE NOT NULL,
+    phone_number VARCHAR(15),
+    avatar_url VARCHAR(512),
     password VARCHAR(255) NOT NULL,
-    role VARCHAR(10) NOT NULL DEFAULT 'user'
+    enabled BOOLEAN DEFAULT FALSE,
+    role VARCHAR(50) NOT NULL DEFAULT 'ROLE_USER',
+    verification_code VARCHAR(10),
+    verification_expiration TIMESTAMP
 );
 
 CREATE TABLE products
 (
     id SERIAL PRIMARY KEY,
-    id_user INTEGER NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    created_at DATE NOT NULL,
-
-    FOREIGN KEY (id_user) REFERENCES users (id) ON DELETE CASCADE
+    name VARCHAR(255) NOT NULL
 );
+
 CREATE TABLE reviews
 (
     id SERIAL PRIMARY KEY,
