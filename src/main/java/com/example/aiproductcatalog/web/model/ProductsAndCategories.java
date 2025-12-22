@@ -8,16 +8,21 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 @Data
-@Entity
 @Table(name = "products_and_categories")
 @Immutable
+@Entity
 public class ProductsAndCategories {
 
     @Id
+    private String id;
+
     @Column(name = "product_name")
     private String productName;
 
     @Column(name = "category_name")
     private String categoryName;
+
+    @Column(name = "image_name")
+    private String imageName;
 
 }

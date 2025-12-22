@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -21,6 +22,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfiguration {
 
     private final AuthenticationProvider authenticationProvider;
@@ -48,7 +50,11 @@ public class SecurityConfiguration {
                                 "/webjars/**",
                                 "/",
                                 "/auth/**",
-                                "/api/files/**"
+                                "/api/files/**",
+                                "/api/reviews/product/{productId}",
+                                "/api/categories",
+                                "/api/products-categories",
+                                "/api/products"
                         ).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // zezwól na preflight CORS
                         .anyRequest().authenticated()

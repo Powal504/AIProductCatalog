@@ -1,8 +1,7 @@
 package com.example.aiproductcatalog.security.service;
 
-import com.example.aiproductcatalog.security.api.dto.LoginUserDto;
-import com.example.aiproductcatalog.security.api.dto.RegisterUserDto;
-import com.example.aiproductcatalog.security.api.dto.VerifyUserDto;
+import com.example.aiproductcatalog.security.api.dto.*;
+import com.example.aiproductcatalog.security.exception.UserNotFoundException;
 import com.example.aiproductcatalog.security.model.User;
 import com.example.aiproductcatalog.security.repository.UserRepository;
 import jakarta.mail.MessagingException;
@@ -48,7 +47,7 @@ public class AuthenticationService {
 
     public User authenticate(LoginUserDto input){
         User user = userRepository.findByEmail(input.getEmail())
-                .orElseThrow(()-> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         if(!user.isEnabled()){
             throw new RuntimeException("Account not verified");
@@ -78,7 +77,7 @@ public class AuthenticationService {
                 throw new RuntimeException("Invalid verification code");
             }
         } else {
-            throw new RuntimeException("User not found");
+            throw new UserNotFoundException("User not found");
         }
     }
     public void resendVerificationCode(String email) {
@@ -121,6 +120,62 @@ public class AuthenticationService {
             e.printStackTrace();
         }
     }
+
+    public void forgotPassword(ForgotPasswordDTO input) {
+        User user = userRepository.findByEmail(input.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setResetPasswordCode(generateVerificationCode());
+        user.setResetPasswordExpiresAt(LocalDateTime.now().plusMinutes(15));
+
+        sendResetPasswordEmail(user);
+        userRepository.save(user);
+    }
+
+    public void resetPassword(ResetPasswordDTO input) {
+        User user = userRepository.findByEmail(input.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (user.getResetPasswordExpiresAt() == null ||
+                user.getResetPasswordExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Reset code expired");
+        }
+
+        if (!user.getResetPasswordCode().equals(input.getVerificationCode())) {
+            throw new RuntimeException("Invalid reset code");
+        }
+
+        user.setPassword(passwordEncoder.encode(input.getNewPassword()));
+        user.setResetPasswordCode(null);
+        user.setResetPasswordExpiresAt(null);
+
+        userRepository.save(user);
+    }
+
+    private void sendResetPasswordEmail(User user) {
+        String subject = "Reset Password Request";
+        String htmlMessage = "<html>"
+                + "<body style=\"font-family: Arial, sans-serif;\">"
+                + "<div style=\"background-color: #f5f5f5; padding: 20px;\">"
+                + "<h2 style=\"color: #333;\">Reset your password</h2>"
+                + "<p style=\"font-size: 16px;\">Use the code below to reset your password:</p>"
+                + "<div style=\"background-color: #fff; padding: 20px; border-radius: 5px;\">"
+                + "<h3>Reset Code:</h3>"
+                + "<p style=\"font-size: 20px; font-weight: bold; color: #007bff;\">"
+                + user.getResetPasswordCode()
+                + "</p>"
+                + "</div>"
+                + "</div>"
+                + "</body>"
+                + "</html>";
+
+        try {
+            emailService.sendVerificationEmail(user.getEmail(), subject, htmlMessage);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Cannot send email");
+        }
+    }
+
     private String generateVerificationCode() {
         Random random = new Random();
         int code = random.nextInt(900000) + 100000;

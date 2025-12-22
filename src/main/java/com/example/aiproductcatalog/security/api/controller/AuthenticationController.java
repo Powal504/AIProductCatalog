@@ -1,8 +1,6 @@
 package com.example.aiproductcatalog.security.api.controller;
 
-import com.example.aiproductcatalog.security.api.dto.LoginUserDto;
-import com.example.aiproductcatalog.security.api.dto.RegisterUserDto;
-import com.example.aiproductcatalog.security.api.dto.VerifyUserDto;
+import com.example.aiproductcatalog.security.api.dto.*;
 import com.example.aiproductcatalog.security.model.User;
 import com.example.aiproductcatalog.security.responses.LoginResponse;
 import com.example.aiproductcatalog.security.service.AuthenticationService;
@@ -32,7 +30,7 @@ public class AuthenticationController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> authenticate(@RequestBody LoginUserDto loginUserDto){
         User authenticatedUser = authenticationService.authenticate(loginUserDto);
-        String jwtToken = jwtService.generateToken(authenticatedUser);
+        String jwtToken = jwtService.generateToken(authenticatedUser, authenticatedUser.getAvatarUrl());
         LoginResponse loginResponse = new LoginResponse(jwtToken, jwtService.getExpirationTime());
         return ResponseEntity.ok(loginResponse);
     }
@@ -52,6 +50,26 @@ public class AuthenticationController {
         try {
             authenticationService.resendVerificationCode(email);
             return ResponseEntity.ok("Verification code sent");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordDTO dto) {
+        try {
+            authenticationService.forgotPassword(dto);
+            return ResponseEntity.ok("Reset code sent to email");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordDTO dto) {
+        try {
+            authenticationService.resetPassword(dto);
+            return ResponseEntity.ok("Password updated successfully");
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

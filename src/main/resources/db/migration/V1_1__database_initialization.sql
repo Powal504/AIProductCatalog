@@ -10,13 +10,16 @@ CREATE TABLE users
     enabled BOOLEAN DEFAULT FALSE,
     role VARCHAR(50) NOT NULL DEFAULT 'ROLE_USER',
     verification_code VARCHAR(10),
-    verification_expiration TIMESTAMP
+    verification_expiration TIMESTAMP,
+    reset_password_code VARCHAR(10),
+    reset_password_expiration TIMESTAMP
 );
 
 CREATE TABLE products
 (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL
+
 );
 
 CREATE TABLE reviews
