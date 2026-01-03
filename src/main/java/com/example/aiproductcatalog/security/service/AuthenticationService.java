@@ -10,6 +10,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Random;
@@ -20,6 +21,7 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final EmailService emailService;
+    private final SecureRandom secureRandom = new SecureRandom();
 
     private AuthenticationService(
             UserRepository userRepository,
@@ -177,8 +179,7 @@ public class AuthenticationService {
     }
 
     private String generateVerificationCode() {
-        Random random = new Random();
-        int code = random.nextInt(900000) + 100000;
+        int code = secureRandom.nextInt(900000) + 100000;
         return String.valueOf(code);
     }
 }

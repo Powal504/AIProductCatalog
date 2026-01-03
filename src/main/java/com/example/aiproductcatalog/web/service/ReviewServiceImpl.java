@@ -77,11 +77,11 @@ public class ReviewServiceImpl implements ReviewService {
             ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
             Map<String, Object> body = response.getBody();
 
-            if (body == null || !body.containsKey("sentiment")) {
+            if (body == null || !body.containsKey("rating")) {
                 throw new RuntimeException("Invalid response from AI API");
             }
 
-            int sentiment = (int) body.get("sentiment");
+            int sentiment = (int) body.get("rating");
             sentiment = Math.min(sentiment + 1, 5);
 
             return (float) sentiment;
