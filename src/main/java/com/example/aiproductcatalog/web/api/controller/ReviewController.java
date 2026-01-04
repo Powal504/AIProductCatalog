@@ -1,5 +1,6 @@
 package com.example.aiproductcatalog.web.api.controller;
 
+import com.example.aiproductcatalog.web.api.dto.PredictRequestDTO;
 import com.example.aiproductcatalog.web.api.dto.ReviewDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -55,7 +56,7 @@ public interface ReviewController {
 
     @PostMapping("/predict")
     @Operation(summary = "Predict rating", description = "Get AI suggested rating for review text")
-    ResponseEntity<Map<String, Float>> predictRating(@RequestParam String text);
+    ResponseEntity<Map<String, Float>> predictRating(@RequestBody PredictRequestDTO request);
 
 
 }

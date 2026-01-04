@@ -1,5 +1,6 @@
 package com.example.aiproductcatalog.web.api.controller;
 
+import com.example.aiproductcatalog.web.api.dto.PredictRequestDTO;
 import com.example.aiproductcatalog.web.api.dto.ReviewDTO;
 import com.example.aiproductcatalog.web.repository.ProductRepository;
 import com.example.aiproductcatalog.web.service.ReviewService;
@@ -65,18 +66,10 @@ public class ReviewControllerImpl implements ReviewController {
         return ResponseEntity.ok(updatedReview);
     }
 
-    @Override
-    public ResponseEntity<Map<String, Float>> predictRating(String text) {
-        try {
-            Float rating = reviewService.predictRating(text);
-            return ResponseEntity.ok(Map.of("predictedRating", rating));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", 0f));
-        }
+    public ResponseEntity<Map<String, Float>> predictRating(PredictRequestDTO request) {
+        Float rating = reviewService.predictRating(request.getText());
+        return ResponseEntity.ok(Map.of("predictedRating", rating));
     }
-
-
 
 }
 
