@@ -4,6 +4,7 @@ import com.example.aiproductcatalog.security.model.User;
 import com.example.aiproductcatalog.security.repository.UserRepository;
 import com.example.aiproductcatalog.web.api.dto.ReviewDTO;
 import com.example.aiproductcatalog.web.api.mapper.ReviewMapper;
+import com.example.aiproductcatalog.security.exception.PredictionException;
 import com.example.aiproductcatalog.web.model.Product;
 import com.example.aiproductcatalog.web.model.Review;
 import com.example.aiproductcatalog.web.repository.ProductRepository;
@@ -64,29 +65,30 @@ public class ReviewServiceImpl implements ReviewService {
         return mapper.toDto(reviewRepository.save(review));
     }
 
+    @Override
     public Float predictRating(String text) {
         try {
             RestTemplate restTemplate = new RestTemplate();
-            String url = "http://localhost:8000/predict";
+            String url = "http://fastapi:8000/predict";
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
-            String requestBody = String.format("{\"text\": \"%s\"}", text.replace("\"", "'"));
-            HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
+            Map<String, String> requestBody = Map.of("text", text);
+            HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, headers);
 
             ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
             Map<String, Object> body = response.getBody();
 
             if (body == null || !body.containsKey("rating")) {
-                throw new RuntimeException("Invalid response from AI API");
+                throw new PredictionException("Invalid response from AI API", null);
             }
 
-            int sentiment = (int) body.get("rating");
-            sentiment = Math.min(sentiment + 1, 5);
+            int rating = (int) body.get("rating");
+            rating = Math.min(rating + 1, 5);
 
-            return (float) sentiment;
+            return (float) rating;
         } catch (Exception e) {
-            throw new RuntimeException("AI rating prediction failed: " + e.getMessage(), e);
+            throw new PredictionException("AI rating prediction failed: " + e.getMessage(), e);
         }
     }
 
