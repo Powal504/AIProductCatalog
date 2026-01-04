@@ -69,7 +69,7 @@ public class ReviewServiceImpl implements ReviewService {
     public Float predictRating(String text) {
         try {
             RestTemplate restTemplate = new RestTemplate();
-            String url = "http://fastapi:8000/predict";
+            String url = "https://fastapi-exi1.onrender.com/predict";
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
