@@ -4,36 +4,39 @@ import com.example.aiproductcatalog.security.api.dto.*;
 import com.example.aiproductcatalog.security.exception.UserNotFoundException;
 import com.example.aiproductcatalog.security.model.User;
 import com.example.aiproductcatalog.security.repository.UserRepository;
-import jakarta.mail.MessagingException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.Random;
 
 @Service
 public class AuthenticationService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
-    private final EmailService emailService;
+    private final SendGridEmailService sendGridEmailService;
     private final SecureRandom secureRandom = new SecureRandom();
+    private final EmailService emailService;
 
-    private AuthenticationService(
+    public AuthenticationService(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
             AuthenticationManager authenticationManager,
+            SendGridEmailService sendGridEmailService,
             EmailService emailService
-    ){
+    ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
+        this.sendGridEmailService = sendGridEmailService;
         this.emailService = emailService;
     }
+
 
     public User signup(RegisterUserDto input){
         User user = new User(input.getUsername(), input.getEmail(), passwordEncoder.encode(input.getPassword()));
@@ -82,6 +85,7 @@ public class AuthenticationService {
             throw new UserNotFoundException("User not found");
         }
     }
+
     public void resendVerificationCode(String email) {
         Optional<User> optionalUser = userRepository.findByEmail(email);
         if (optionalUser.isPresent()) {
@@ -98,7 +102,6 @@ public class AuthenticationService {
             throw new RuntimeException("User not found");
         }
     }
-
 
     private void sendVerificationEmail(User user) {
         String subject = "Account Verification";
@@ -118,7 +121,7 @@ public class AuthenticationService {
 
         try {
             emailService.sendVerificationEmail(user.getEmail(), subject, htmlMessage);
-        } catch (MessagingException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -173,8 +176,8 @@ public class AuthenticationService {
 
         try {
             emailService.sendVerificationEmail(user.getEmail(), subject, htmlMessage);
-        } catch (MessagingException e) {
-            throw new RuntimeException("Cannot send email");
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
